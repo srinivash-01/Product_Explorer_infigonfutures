@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
+import Link from "next/link";
+
 
 type Product = {
   id: number;
@@ -179,6 +181,8 @@ export default function Home() {
         ) : (
           <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredProducts.map((p) => (
+              <Link key={p.id} href={`/products/${p.id}`} className="block h-full">
+ 
               <article 
                 key={p.id}
                 className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-xl border border-orange-100 hover:border-orange-200 p-6 hover:-translate-y-1 transition-all duration-300 flex flex-col"
@@ -202,6 +206,7 @@ export default function Home() {
                   {p.category}
                 </span>
               </article>
+              </Link>
             ))}
           </section>
         )}
