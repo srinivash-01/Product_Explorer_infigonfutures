@@ -22,6 +22,8 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [favorites, setFavorites] = useState<number[]>([]);
+  const [showFavorites, setShowFavorites] = useState(false);
 
   useEffect(() => {
     async function fetchProducts() {
@@ -47,6 +49,14 @@ export default function Home() {
     fetchProducts();
   }, []);
 
+  // Load favorites from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('favorites');
+    if (saved) {
+      setFavorites(JSON.parse(saved));
+    }
+  }, []);
+
   // Get unique categories
   const categories = useMemo(() => {
     const unique = Array.from(new Set(products.map(p => p.category)));
@@ -58,9 +68,10 @@ export default function Home() {
     return products.filter(product => {
       const matchesSearch = product.title.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
-      return matchesSearch && matchesCategory;
+      const matchesFavorites = !showFavorites || favorites.includes(product.id);
+      return matchesSearch && matchesCategory && matchesFavorites;
     });
-  }, [products, searchTerm, selectedCategory]);
+  }, [products, searchTerm, selectedCategory, showFavorites, favorites]);
 
   // Debounced search
   const debouncedSearch = useCallback((term: string) => {
@@ -72,6 +83,17 @@ export default function Home() {
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     debouncedSearch(e.target.value);
+  };
+
+  const toggleFavorite = (e: React.MouseEvent, id: number) => {
+    e.preventDefault();
+    setFavorites(prev => {
+      const newFavorites = prev.includes(id) 
+        ? prev.filter(favId => favId !== id)
+        : [...prev, id];
+      localStorage.setItem('favorites', JSON.stringify(newFavorites));
+      return newFavorites;
+    });
   };
 
   const SkeletonCard = () => (
@@ -161,6 +183,18 @@ export default function Home() {
               </option>
             ))}
           </select>
+
+          {/* Favorites Filter */}
+          <button
+            onClick={() => setShowFavorites(!showFavorites)}
+            className={`w-full lg:w-auto px-6 py-3 rounded-2xl border transition-all duration-200 font-medium shadow-lg hover:shadow-xl whitespace-nowrap ${
+              showFavorites 
+                ? 'bg-orange-500 border-orange-600 text-white' 
+                : 'bg-white/80 backdrop-blur-sm border-orange-200 text-orange-600 hover:bg-orange-50'
+            }`}
+          >
+            {showFavorites ? 'Show All' : 'Favorites'}
+          </button>
         </div>
 
         {filteredProducts.length === 0 ? (
@@ -187,7 +221,19 @@ export default function Home() {
                 key={p.id}
                 className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-xl border border-orange-100 hover:border-orange-200 p-6 hover:-translate-y-1 transition-all duration-300 flex flex-col"
               >
-                <div className="w-full h-48 mb-4 flex items-center justify-center bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl">
+                <div className="relative w-full h-48 mb-4 flex items-center justify-center bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl">
+                  <button
+                    onClick={(e) => toggleFavorite(e, p.id)}
+                    className="absolute top-2 right-2 p-2 rounded-full bg-white/80 backdrop-blur-sm shadow-md hover:bg-white transition-all duration-200 z-10"
+                    title={favorites.includes(p.id) ? "Remove from favorites" : "Add to favorites"}
+                  >
+                    <svg 
+                      className={`w-5 h-5 transition-colors duration-200 ${favorites.includes(p.id) ? 'text-red-500 fill-current' : 'text-gray-400 hover:text-red-400'}`}
+                      fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                  </button>
                   <img 
                     src={p.image} 
                     alt={p.title}
