@@ -1,20 +1,13 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import Link from "next/link";
-
-
-type Product = {
-  id: number;
-  title: string;
-  price: number;
-  description: string;
-  category: string;
-  image: string;
-  rating?: { rate: number; count: number };
-};
-
-type Status = 'loading' | 'success' | 'error';
+import { Product, Status } from "./types";
+import { fetchProducts } from "./lib/api";
+import { ProductCard } from "./components/ProductCard";
+import { SkeletonCard } from "./components/SkeletonCard";
+import { FilterBar } from "./components/FilterBar";
+import { ErrorState } from "./components/ErrorState";
+import { EmptyState } from "./components/EmptyState";
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -26,18 +19,10 @@ export default function Home() {
   const [showFavorites, setShowFavorites] = useState(false);
 
   useEffect(() => {
-    async function fetchProducts() {
+    async function loadProducts() {
       try {
         setStatus('loading');
-        const res = await fetch("https://fakestoreapi.com/products", { 
-          next: { revalidate: 60 } 
-        });
-        
-        if (!res.ok) {
-          throw new Error("Failed to fetch products");
-        }
-        
-        const data = await res.json();
+        const data = await fetchProducts();
         setProducts(data);
         setStatus('success');
       } catch (err) {
@@ -46,7 +31,7 @@ export default function Home() {
       }
     }
     
-    fetchProducts();
+    loadProducts();
   }, []);
 
   // Load favorites from localStorage
@@ -96,15 +81,6 @@ export default function Home() {
     });
   };
 
-  const SkeletonCard = () => (
-    <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-orange-100 p-6 animate-pulse">
-      <div className="w-full h-48 mb-4 bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl"></div>
-      <div className="h-6 bg-orange-100 rounded-md mb-3"></div>
-      <div className="h-8 bg-orange-100 rounded-md w-24 mb-4"></div>
-      <div className="h-6 bg-orange-100 rounded-full w-20"></div>
-    </div>
-  );
-
   if (status === 'loading') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 p-6">
@@ -124,25 +100,7 @@ export default function Home() {
 
   if (status === 'error') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 p-6">
-        <main className="mx-auto max-w-7xl">
-          <div className="text-center py-20">
-            <div className="w-24 h-24 bg-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <svg className="w-12 h-12 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            </div>
-            <h2 className="text-2xl font-bold text-orange-800 mb-4">Oops! Something went wrong</h2>
-            <p className="text-lg text-orange-600 mb-6">{error}</p>
-            <button 
-              onClick={() => window.location.reload()}
-              className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold py-3 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
-            >
-              Try Again
-            </button>
-          </div>
-        </main>
-      </div>
+      <ErrorState error={error} onRetry={() => window.location.reload()} />
     );
   }
 
@@ -157,102 +115,26 @@ export default function Home() {
         </header>
 
         {/* Controls */}
-        <div className="mb-8 flex flex-col lg:flex-row gap-4 items-center justify-center max-w-2xl mx-auto">
-          {/* Search */}
-          <div className="relative w-full max-w-md">
-            <input
-              type="text"
-              placeholder="Search products..."
-              onChange={handleSearch}
-              className="w-full pl-12 pr-4 py-3 rounded-2xl bg-white/80 backdrop-blur-sm border border-orange-200 focus:border-orange-400 focus:outline-none shadow-lg hover:shadow-xl transition-all duration-200 text-gray-800 placeholder-orange-400"
-            />
-            <svg className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </div>
-
-          {/* Category Filter */}
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="w-full lg:w-auto px-4 py-3 rounded-2xl bg-white/80 backdrop-blur-sm border border-orange-200 focus:border-orange-400 focus:outline-none shadow-lg hover:shadow-xl transition-all duration-200 text-gray-800"
-          >
-            {categories.map((category) => (
-              <option key={category} value={category}>
-                {category === 'all' ? 'All Categories' : category.charAt(0).toUpperCase() + category.slice(1)}
-              </option>
-            ))}
-          </select>
-
-          {/* Favorites Filter */}
-          <button
-            onClick={() => setShowFavorites(!showFavorites)}
-            className={`w-full lg:w-auto px-6 py-3 rounded-2xl border transition-all duration-200 font-medium shadow-lg hover:shadow-xl whitespace-nowrap ${
-              showFavorites 
-                ? 'bg-orange-500 border-orange-600 text-white' 
-                : 'bg-white/80 backdrop-blur-sm border-orange-200 text-orange-600 hover:bg-orange-50'
-            }`}
-          >
-            {showFavorites ? 'Show All' : 'Favorites'}
-          </button>
-        </div>
+        <FilterBar 
+          onSearchChange={handleSearch}
+          selectedCategory={selectedCategory}
+          onCategoryChange={(e) => setSelectedCategory(e.target.value)}
+          categories={categories}
+          showFavorites={showFavorites}
+          onToggleShowFavorites={() => setShowFavorites(!showFavorites)}
+        />
 
         {filteredProducts.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="w-24 h-24 bg-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <svg className="w-12 h-12 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2 2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-              </svg>
-            </div>
-            <h2 className="text-2xl font-bold text-orange-800 mb-4">
-              {searchTerm || selectedCategory !== 'all' 
-                ? 'No products match your search' 
-                : 'No products found'
-              }
-            </h2>
-            <p className="text-lg text-orange-600 mb-6">Try adjusting your search or filter</p>
-          </div>
+          <EmptyState isSearchActive={!!searchTerm || selectedCategory !== 'all'} />
         ) : (
           <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredProducts.map((p) => (
-              <Link key={p.id} href={`/products/${p.id}`} className="block h-full">
- 
-              <article 
+              <ProductCard 
                 key={p.id}
-                className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-xl border border-orange-100 hover:border-orange-200 p-6 hover:-translate-y-1 transition-all duration-300 flex flex-col"
-              >
-                <div className="relative w-full h-48 mb-4 flex items-center justify-center bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl">
-                  <button
-                    onClick={(e) => toggleFavorite(e, p.id)}
-                    className="absolute top-2 right-2 p-2 rounded-full bg-white/80 backdrop-blur-sm shadow-md hover:bg-white transition-all duration-200 z-10"
-                    title={favorites.includes(p.id) ? "Remove from favorites" : "Add to favorites"}
-                  >
-                    <svg 
-                      className={`w-5 h-5 transition-colors duration-200 ${favorites.includes(p.id) ? 'text-red-500 fill-current' : 'text-gray-400 hover:text-red-400'}`}
-                      fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                    </svg>
-                  </button>
-                  <img 
-                    src={p.image} 
-                    alt={p.title}
-                    className="w-32 h-32 object-contain rounded-lg shadow-md hover:scale-105 transition-transform duration-200"
-                  />
-                </div>
-                <h2 className="font-bold text-lg text-gray-900 mb-3 line-clamp-2 leading-tight">
-                  {p.title}
-                </h2>
-                <div className="mb-4">
-                  <span className="text-2xl font-black text-orange-600 block">
-                    ₹{(p.price * 83).toLocaleString('en-IN')}
-                  </span>
-                </div>
-                <span className="inline-block bg-orange-100 text-orange-800 text-xs font-semibold px-3 py-1 rounded-full">
-                  {p.category}
-                </span>
-              </article>
-              </Link>
+                product={p}
+                isFavorite={favorites.includes(p.id)}
+                onToggleFavorite={toggleFavorite}
+              />
             ))}
           </section>
         )}
