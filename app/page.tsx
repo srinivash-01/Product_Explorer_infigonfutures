@@ -19,8 +19,10 @@ export default async function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 dark:from-gray-900 dark:to-gray-950 transition-colors duration-300 p-6">
-      <ProductExplorer initialProducts={products} />
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
+      <div className="max-w-8xl mx-auto p-4 sm:p-6 lg:p-8">
+        <ProductExplorer initialProducts={products} />
+      </div>
     </div>
   );
 }

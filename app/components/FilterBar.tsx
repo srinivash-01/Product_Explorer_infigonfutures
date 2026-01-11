@@ -26,25 +26,26 @@ export const FilterBar = ({
   onToggleDarkMode
 }: FilterBarProps) => {
   return (
-    <div className="mb-8 flex flex-col lg:flex-row gap-4 items-center justify-center max-w-4xl mx-auto flex-wrap">
+    <div className="mb-10 flex flex-col lg:flex-row gap-4 items-center justify-between bg-white dark:bg-gray-900 p-4 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-800">
       {/* Search */}
-      <div className="relative w-full max-w-md">
+      <div className="relative w-full lg:max-w-md">
         <input
           type="text"
           placeholder="Search products..."
           onChange={onSearchChange}
-          className="w-full pl-12 pr-4 py-3 rounded-2xl bg-white/80 dark:bg-gray-800 backdrop-blur-sm border border-orange-200 dark:border-gray-700 focus:border-orange-400 dark:focus:border-orange-500 focus:outline-none shadow-lg hover:shadow-xl transition-all duration-200 text-gray-800 dark:text-gray-100 placeholder-orange-400 dark:placeholder-gray-500"
+          className="w-full pl-12 pr-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border-transparent focus:bg-white dark:focus:bg-gray-900 border focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-0 transition-all duration-200 text-gray-900 dark:text-white placeholder-gray-400"
         />
-        <svg className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
       </div>
 
+      <div className="flex flex-wrap gap-3 w-full lg:w-auto justify-center lg:justify-end">
       {/* Category Filter */}
       <select
         value={selectedCategory}
         onChange={onCategoryChange}
-       className="w-full lg:w-auto px-4 py-3 rounded-2xl bg-white/80 dark:bg-gray-800 backdrop-blur-sm border border-orange-200 dark:border-gray-700 focus:border-orange-400 dark:focus:border-orange-500 focus:outline-none shadow-lg hover:shadow-xl transition-all duration-200 text-gray-800 dark:text-gray-100"
+       className="px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border-transparent focus:bg-white dark:focus:bg-gray-900 border focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-0 cursor-pointer transition-all duration-200 text-gray-900 dark:text-white"
       >
         {categories.map((category) => (
           <option key={category} value={category}>
@@ -57,7 +58,7 @@ export const FilterBar = ({
       <select
         value={sortBy}
         onChange={onSortChange}
-        className="w-full lg:w-auto px-4 py-3 rounded-2xl bg-white/80 dark:bg-gray-800 backdrop-blur-sm border border-orange-200 dark:border-gray-700 focus:border-orange-400 dark:focus:border-orange-500 focus:outline-none shadow-lg hover:shadow-xl transition-all duration-200 text-gray-800 dark:text-gray-100"
+        className="px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border-transparent focus:bg-white dark:focus:bg-gray-900 border focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-0 cursor-pointer transition-all duration-200 text-gray-900 dark:text-white"
         aria-label="Sort products"
       >
         <option value="default">Sort by</option>
@@ -69,10 +70,10 @@ export const FilterBar = ({
       <button
         onClick={onToggleShowFavorites}
         type="button"
-        className={`w-full lg:w-auto px-6 py-3 rounded-2xl border transition-all duration-200 font-medium shadow-lg hover:shadow-xl whitespace-nowrap ${
+        className={`px-6 py-3 rounded-xl border transition-all duration-200 font-medium whitespace-nowrap ${
           showFavorites 
-            ? 'bg-orange-500 border-orange-600 text-white' 
-            : 'bg-white/80 dark:bg-gray-800 backdrop-blur-sm border-orange-200 dark:border-gray-700 text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-gray-700'
+            ? 'bg-indigo-600 border-indigo-600 text-white shadow-md shadow-indigo-200 dark:shadow-none' 
+            : 'bg-gray-50 dark:bg-gray-800 border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
         }`}
       >
         {showFavorites ? 'Show All' : 'Favorites'}
@@ -82,7 +83,7 @@ export const FilterBar = ({
       <button
         onClick={onToggleDarkMode}
         type="button"
-        className="p-3 rounded-2xl bg-white/80 dark:bg-gray-800 backdrop-blur-sm border border-orange-200 dark:border-gray-700 text-orange-600 dark:text-orange-400 shadow-lg hover:shadow-xl transition-all duration-200"
+        className="p-3 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200"
         aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
       >
         {darkMode ? (
@@ -95,6 +96,7 @@ export const FilterBar = ({
           </svg>
         )}
       </button>
+      </div>
     </div>
   );
 };

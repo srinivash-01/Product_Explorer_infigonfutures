@@ -6,6 +6,7 @@ import { ProductCard } from "./ProductCard";
 import { FilterBar } from "./FilterBar";
 import { EmptyState } from "./EmptyState";
 import { Pagination } from "./Pagination";
+import { useTheme } from "./ThemeProvider";
 
 interface ProductExplorerProps {
   initialProducts: Product[];
@@ -19,30 +20,15 @@ export const ProductExplorer = ({ initialProducts }: ProductExplorerProps) => {
   const [favorites, setFavorites] = useState<number[]>([]);
   const [showFavorites, setShowFavorites] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [darkMode, setDarkMode] = useState(false);
+  const { theme, toggleTheme } = useTheme();
+  const darkMode = theme === 'dark';
   const itemsPerPage = 8;
 
-  // Load favorites and theme from localStorage
+  // Load favorites from localStorage
   useEffect(() => {
     const savedFavs = localStorage.getItem('favorites');
     if (savedFavs) setFavorites(JSON.parse(savedFavs));
-
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      setDarkMode(true);
-      document.documentElement.classList.add('dark');
-    }
   }, []);
-
-  const toggleDarkMode = () => {
-    setDarkMode(prev => {
-      const newVal = !prev;
-      if (newVal) document.documentElement.classList.add('dark');
-      else document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', newVal ? 'dark' : 'light');
-      return newVal;
-    });
-  };
 
   const categories = useMemo(() => {
     const unique = Array.from(new Set(products.map(p => p.category)));
@@ -90,12 +76,14 @@ export const ProductExplorer = ({ initialProducts }: ProductExplorerProps) => {
   };
 
   return (
-    <main className="mx-auto max-w-7xl">
-      <header className="mb-10 text-center">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-amber-700 dark:from-orange-400 dark:to-amber-500 bg-clip-text text-transparent mb-2">
-          Products
+    <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <header className="mb-12 text-center space-y-4">
+        <h1 className="text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-6xl">
+          Discover Products
         </h1>
-        <p className="text-sm text-orange-600 dark:text-orange-400 font-medium">{filteredAndSortedProducts.length} items</p>
+        <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          Explore our curated collection of {filteredAndSortedProducts.length} premium items tailored just for you.
+        </p>
       </header>
 
       <FilterBar 
@@ -108,7 +96,7 @@ export const ProductExplorer = ({ initialProducts }: ProductExplorerProps) => {
         sortBy={sortBy}
         onSortChange={(e) => setSortBy(e.target.value)}
         darkMode={darkMode}
-        onToggleDarkMode={toggleDarkMode}
+        onToggleDarkMode={toggleTheme}
       />
 
       {filteredAndSortedProducts.length === 0 ? (
