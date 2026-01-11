@@ -15,7 +15,8 @@ export default async function Home() {
   }
 
   if (error) {
-    return <ErrorState error={error} onRetry={() => {}} />;
+    // Ensure no function props are passed to Client Components
+    return <ErrorState error={error} />;
   }
 
   return (
